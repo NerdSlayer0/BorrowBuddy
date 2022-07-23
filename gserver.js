@@ -36,6 +36,16 @@ app.get("/main", function (req, res) {
 
 });
 
+// loads template content
+function wrap(filename, session) {
+    let template = fs.readFileSync("./app/html/template.html", "utf8");
+    let dom = new JSDOM(template);
+    dom.window.document.getElementById("templateContent").innerHTML = fs.readFileSync(filename, "utf8");
+    dom.window.document.getElementById("name").innerHTML = "WELCOME " + session.username.toUpperCase();
+
+    return dom;
+}
+
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
     port: 3306,
