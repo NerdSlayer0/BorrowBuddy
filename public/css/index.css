@@ -1,0 +1,24 @@
+:root {
+    --color1: white;
+    --color2: grey;
+}
+
+body { 
+    background-color: var(--color1);
+}
+
+.defaultButton {
+    font-family: 'atwriter';
+    padding: 12px;
+    font-size: 1em;
+    background-color: var(--color1);
+    border-radius: 10px;
+    width: auto;
+    color: var(--color2);
+    cursor: pointer;
+    min-width: 200px;
+}
+
+.defaultButton:hover {
+    background-color: var(--color2);
+}

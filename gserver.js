@@ -1,3 +1,5 @@
+var util = require('util');
+var encoder = new util.TextEncoder('utf-8');
 const express = require("express");
 const session = require("express-session")({
     secret: "underthebridge",
@@ -6,7 +8,8 @@ const session = require("express-session")({
     // create a unique identifier for that client
     saveUninitialized: true
 });
-
+const app = express();
+const bodyparser = require("body-parser");
 const mysql = require("mysql2");
 const connection = mysql.createConnection({
     host: "localhost",
@@ -15,13 +18,13 @@ const connection = mysql.createConnection({
     password: "",
     database: "borrowbuddy"
 });
+//used for uploading files
+// const multer = require("multer");
 
-const app = express();
 const fs = require("fs");
 const {
     JSDOM
 } = require("jsdom");
-const bodyparser = require("body-parser");
 
 // static path mappings
 app.use("/js", express.static("./public/js"));
@@ -51,6 +54,15 @@ app.get("/", function (req, res) {
     }
 });
 
+function wrap(filename, session) {
+    let template = fs.readFileSync("./app/html/template.html", "utf8");
+    let dom = new JSDOM(template);
+    dom.window.document.getElementById("templateContent").innerHTML = fs.readFileSync(filename, "utf8");
+    dom.window.document.getElementById("name").innerHTML = "WELCOME " + session.username.toUpperCase();
+
+    return dom;
+}
+
 app.get("/home", function (req, res) {
     // check for a session first!
     if (req.session.loggedIn) {
@@ -63,6 +75,13 @@ app.get("/home", function (req, res) {
         res.redirect("/");
     }
 });
+
+app.use(express.json());
+app.use(
+    express.urlencoded({
+        extended: true,
+    })
+);
 
 /* ----- login ----- */
 app.post("/login", function (req, res) {
@@ -86,13 +105,11 @@ app.post("/login", function (req, res) {
                 req.session.isAdmin = results[0].is_admin;
                 req.session.userImage = results[0].user_image;
                 req.session.pass = results[0].password;
-
+                console.log("Logged in with user: " + results[0].user_name + " and password: " + results[0].password);
                 req.session.save((error) => {
                     if (error) console.log(error);
                 });
 
-                // all we are doing as a server is telling the client that they
-                // are logged in, it is up to them to switch to the profile page
                 res.send({
                     status: "success",
                     msg: "Logged in.",
@@ -107,9 +124,11 @@ app.get("/logout", function (req, res) {
         req.session.destroy(function (error) {
             if (error) {
                 res.status(400).send("Unable to log out");
+                console.log(error);
             } else {
                 // session deleted, redirect to home
                 res.redirect("/");
+                console.log("Logged out");
             }
         });
     }

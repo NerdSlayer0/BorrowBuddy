@@ -1,3 +1,5 @@
+mysql -u root -p
+
 CREATE TABLE BB_user (
   ID int NOT NULL AUTO_INCREMENT,
   user_name VARCHAR(50),
